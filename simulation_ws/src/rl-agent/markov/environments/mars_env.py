@@ -23,6 +23,7 @@ from std_msgs.msg import Float64
 from std_msgs.msg import String
 from PIL import Image
 import queue
+from tensorboardX import SummaryWriter
 
 
 VERSION = "0.0.1"
@@ -31,7 +32,7 @@ TRAINING_IMAGE_HEIGHT = 120
 TRAINING_IMAGE_SIZE = (TRAINING_IMAGE_WIDTH, TRAINING_IMAGE_HEIGHT)
 
 LIDAR_SCAN_MAX_DISTANCE = 4.5  # Max distance Lidar scanner can measure
-CRASH_DISTANCE = 0.49  # Min distance to obstacle (The LIDAR is in the center of the 1M Rover)
+CRASH_DISTANCE = 0.50  # Min distance to obstacle (The LIDAR is in the center of the 1M Rover)
 
 # Size of the image queue buffer, we want this to be one so that we consume 1 image
 # at a time, but may want to change this as we add more algorithms
@@ -41,7 +42,7 @@ IMG_QUEUE_BUF_SIZE = 1
 MAX_STEPS = 2000
 
 # Destination Point
-CHECKPOINT_X = 44.25
+CHECKPOINT_X = -44.25
 CHECKPOINT_Y = -4
 
 # Initial position of the robot
@@ -129,6 +130,9 @@ class MarsEnv(gym.Env):
         rospy.Subscriber('/camera/image_raw', sensor_image, self.callback_image)
         # IMU Sensors
         rospy.Subscriber('/imu/wheel_lb', Imu, self.callback_wheel_lb)
+        self.writer = SummaryWriter()
+        self.num_episodes = 0
+        self.global_steps = 0
 
 
 
@@ -160,7 +164,7 @@ class MarsEnv(gym.Env):
     def reset(self):
         print('Total Episodic Reward=%.2f' % self.reward_in_episode,
               'Total Episodic Steps=%.2f' % self.steps)
-        self.send_reward_to_cloudwatch(self.reward_in_episode)
+        #self.send_reward_to_cloudwatch(self.reward_in_episode)
 
         # Reset global episodic values
         self.reward = None
@@ -332,13 +336,20 @@ class MarsEnv(gym.Env):
               'CT:%.2f' % self.collision_threshold,             # Collision Threshold
               'CTCP:%f' % self.closer_to_checkpoint,            # Is closer to checkpoint
               'PSR: %f' % self.power_supply_range,              # Steps remaining in Episode
-              'IMU: %f' % avg_imu)
+              'IMU: %f' % avg_imu,
+              'X_POS: %f' % self.x,
+              'Y_POS: %f' % self.y)
 
         self.reward = reward
         self.done = done
 
         self.last_position_x = self.x
         self.last_position_y = self.y
+        if self.done:
+            self.writer.add_scalar('data/episode_reward', self.reward_in_episode, self.num_episodes)
+            self.num_episodes += 1
+        self.writer.add_scalar('data/reward', self.reward, self.global_steps)
+        self.global_steps += 1
 
 
 
@@ -355,27 +366,27 @@ class MarsEnv(gym.Env):
         '''
         
         # Corner boundaries of the world (in Meters)
-        STAGE_X_MIN = -44.0
-        STAGE_Y_MIN = -25.0
-        STAGE_X_MAX = 15.0
+        STAGE_X_MIN = -46
+        STAGE_Y_MIN = -22.0
+        STAGE_X_MAX = 5.0
         STAGE_Y_MAX = 22.0
         
         
         GUIDERAILS_X_MIN = -46
-        GUIDERAILS_X_MAX = 1
-        GUIDERAILS_Y_MIN = -6
-        GUIDERAILS_Y_MAX = 4
+        GUIDERAILS_X_MAX = 5
+        GUIDERAILS_Y_MIN = -22
+        GUIDERAILS_Y_MAX = 22
         
         
         # WayPoints to checkpoint
-        WAYPOINT_1_X = -10
-        WAYPOINT_1_Y = -4
+        WAYPOINT_1_X = -11
+        WAYPOINT_1_Y = -1
         
-        WAYPOINT_2_X = -17
-        WAYPOINT_2_Y = 3
+        WAYPOINT_2_X = -22
+        WAYPOINT_2_Y = -2
         
-        WAYPOINT_3_X = -34
-        WAYPOINT_3_Y = 3
+        WAYPOINT_3_X = -33
+        WAYPOINT_3_Y = -3
         
         # REWARD Multipliers
         FINISHED_REWARD = 10000
@@ -410,7 +421,7 @@ class MarsEnv(gym.Env):
                 return 0, True # No reward
             
             # Has the Rover reached the destination
-            if self.last_position_x >= CHECKPOINT_X and self.last_position_y >= CHECKPOINT_Y:
+            if self.last_position_x <= CHECKPOINT_X and self.last_position_y >= CHECKPOINT_Y:
                 print("Congratulations! The rover has reached the checkpoint!")
                 multiplier = FINISHED_REWARD
                 reward = (base_reward * multiplier) / self.steps # <-- incentivize to reach checkpoint in fewest steps
@@ -429,7 +440,7 @@ class MarsEnv(gym.Env):
             
             # No Episode ending events - continue to calculate reward
             
-            if self.last_position_x <= WAYPOINT_1_X and self.last_position_y <= WAYPOINT_1_Y: # Rover is past the midpoint
+            if self.last_position_x <= WAYPOINT_1_X and self.last_position_y >= WAYPOINT_1_Y: # Rover is past the midpoint
                 # Determine if Rover already received one time reward for reaching this waypoint
                 if not self.reached_waypoint_1:  
                     self.reached_waypoint_1 = True
@@ -493,8 +504,7 @@ class MarsEnv(gym.Env):
                     multiplier = multiplier/2
                     
             reward = base_reward * multiplier
-            
-        
+                    
         return reward, done
     
         
@@ -580,7 +590,7 @@ class MarsEnv(gym.Env):
         # Listen for a collision with anything in the environment
         collsion_states = data.states
         if len(collsion_states) > 0:
-            self.collide = True
+            self.collision = True
 
     
     '''
