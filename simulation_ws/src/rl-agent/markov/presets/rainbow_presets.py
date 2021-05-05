@@ -5,7 +5,7 @@ from rl_coach.environments.gym_environment import GymVectorEnvironment
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
 from rl_coach.schedules import LinearSchedule
-from rl_coach.exploration_policies.categorical import CategoricalParameters
+from rl_coach.exploration_policies.e_greedy import EGreedyParameters
 from rl_coach.filters.filter import NoInputFilter, NoOutputFilter, InputFilter
 from rl_coach.filters.observation.observation_stacking_filter import ObservationStackingFilter
 from rl_coach.filters.observation.observation_to_uint8_filter import ObservationToUInt8Filter
@@ -37,7 +37,7 @@ agent_params.algorithm.discount = 0.999
 #agent_params.algorithm.optimization_epochs = 10
 agent_params.algorithm.num_steps_between_copying_online_weights_to_target = EnvironmentEpisodes(20)
 agent_params.algorithm.num_consecutive_playing_steps = EnvironmentEpisodes(20)
-agent_params.exploration = CategoricalParameters()
+agent_params.exploration = EGreedyParameters()
 agent_params.memory.max_size = (MemoryGranularity.Transitions, 10**5)
 
 
