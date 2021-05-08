@@ -349,6 +349,7 @@ class MarsEnv(gym.Env):
             self.writer.add_scalar('data/episode_reward', self.reward_in_episode, self.num_episodes)
             self.num_episodes += 1
         self.writer.add_scalar('data/reward', self.reward, self.global_steps)
+        self.writer.add_scalar('obs/distance_to_checkpoint', self.current_distance_to_checkpoint, self.global_steps)
         self.global_steps += 1
 
 
