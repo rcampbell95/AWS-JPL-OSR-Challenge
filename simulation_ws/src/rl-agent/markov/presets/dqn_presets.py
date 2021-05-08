@@ -35,7 +35,7 @@ agent_params.network_wrappers['main'].adam_optimizer_beta2 = 0.999
 
 agent_params.algorithm.discount = 0.999
 #agent_params.algorithm.optimization_epochs = 10
-agent_params.algorithm.num_steps_between_copying_online_weights_to_target = EnvironmentEpisodes(20)
+agent_params.algorithm.num_steps_between_copying_online_weights_to_target = EnvironmentSteps(2000)
 agent_params.algorithm.num_consecutive_playing_steps = EnvironmentEpisodes(20)
 agent_params.exploration = EGreedyParameters()
 agent_params.memory.max_size = (MemoryGranularity.Transitions, 10**5)
