@@ -371,15 +371,15 @@ class MarsEnv(gym.Env):
         
         # Corner boundaries of the world (in Meters)
         STAGE_X_MIN = -46
-        STAGE_Y_MIN = -22.0
-        STAGE_X_MAX = 5.0
-        STAGE_Y_MAX = 22.0
+        STAGE_Y_MIN = -22
+        STAGE_X_MAX = 5
+        STAGE_Y_MAX = 22
         
         
         GUIDERAILS_X_MIN = -46
-        GUIDERAILS_X_MAX = 5
-        GUIDERAILS_Y_MIN = -16
-        GUIDERAILS_Y_MAX = 16
+        GUIDERAILS_X_MAX = 1
+        GUIDERAILS_Y_MIN = -6
+        GUIDERAILS_Y_MAX = 4
         
         
         # WayPoints to checkpoint
