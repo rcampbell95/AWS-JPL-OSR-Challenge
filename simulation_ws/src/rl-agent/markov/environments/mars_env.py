@@ -338,7 +338,8 @@ class MarsEnv(gym.Env):
               'PSR: %f' % self.power_supply_range,              # Steps remaining in Episode
               'IMU: %f' % avg_imu,
               'X_POS: %f' % self.x,
-              'Y_POS: %f' % self.y)
+              'Y_POS: %f' % self.y,
+              'WP: {}'.format(self.reached_waypoint_1 + self.reached_waypoint_2 + self.reached_waypoint_3))
 
         self.reward = reward
         self.done = done
@@ -347,6 +348,9 @@ class MarsEnv(gym.Env):
         self.last_position_y = self.y
         if self.done:
             self.writer.add_scalar('data/episode_reward', self.reward_in_episode, self.num_episodes)
+            self.writer.add_scalar('data/waypoint_reached', self.reached_waypoint_1 + 
+                                                            self.reached_waypoint_2 + 
+                                                            self.reached_waypoint_3, self.num_episodes)
             self.writer.add_scalar('data/steps_per_episode', self.steps, self.num_episodes)
             self.writer.add_scalar('data/power_efficiency', self.distance_travelled/(MAX_STEPS-self.power_supply_range), self.num_episodes)
             self.num_episodes += 1
@@ -370,15 +374,15 @@ class MarsEnv(gym.Env):
         
         # Corner boundaries of the world (in Meters)
         STAGE_X_MIN = -46
-        STAGE_Y_MIN = -22.0
-        STAGE_X_MAX = 5.0
-        STAGE_Y_MAX = 22.0
+        STAGE_Y_MIN = -22
+        STAGE_X_MAX = 5
+        STAGE_Y_MAX = 22
         
         
         GUIDERAILS_X_MIN = -46
-        GUIDERAILS_X_MAX = 5
-        GUIDERAILS_Y_MIN = -22
-        GUIDERAILS_Y_MAX = 22
+        GUIDERAILS_X_MAX = 1
+        GUIDERAILS_Y_MIN = -6
+        GUIDERAILS_Y_MAX = 4
         
         
         # WayPoints to checkpoint
@@ -401,7 +405,7 @@ class MarsEnv(gym.Env):
         base_reward = 2
         multiplier = 0
         done = False
-        
+        reward_to_checkpoint = True        
         
         if self.steps > 0:
             
@@ -442,6 +446,11 @@ class MarsEnv(gym.Env):
             
             
             # No Episode ending events - continue to calculate reward
+
+            if reward_to_checkpoint:
+                reward = -1 * self.current_distance_to_checkpoint
+                return reward, done
+
             
             if self.last_position_x <= WAYPOINT_1_X and self.last_position_y >= WAYPOINT_1_Y: # Rover is past the midpoint
                 # Determine if Rover already received one time reward for reaching this waypoint
