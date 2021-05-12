@@ -351,8 +351,11 @@ class MarsEnv(gym.Env):
             self.writer.add_scalar('data/waypoint_reached', self.reached_waypoint_1 + 
                                                             self.reached_waypoint_2 + 
                                                             self.reached_waypoint_3, self.num_episodes)
+            self.writer.add_scalar('data/steps_per_episode', self.steps, self.num_episodes)
+            self.writer.add_scalar('data/power_efficiency', self.distance_travelled/(MAX_STEPS-self.power_supply_range), self.num_episodes)
             self.num_episodes += 1
         self.writer.add_scalar('data/reward', self.reward, self.global_steps)
+        self.writer.add_scalar('obs/distance_to_checkpoint', self.current_distance_to_checkpoint, self.global_steps)
         self.global_steps += 1
 
 
