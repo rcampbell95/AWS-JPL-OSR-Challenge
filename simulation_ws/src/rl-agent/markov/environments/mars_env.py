@@ -338,7 +338,8 @@ class MarsEnv(gym.Env):
               'PSR: %f' % self.power_supply_range,              # Steps remaining in Episode
               'IMU: %f' % avg_imu,
               'X_POS: %f' % self.x,
-              'Y_POS: %f' % self.y)
+              'Y_POS: %f' % self.y,
+              'WP: {}'.format(self.reached_waypoint_1 + self.reached_waypoint_2 + self.reached_waypoint_3))
 
         self.reward = reward
         self.done = done
@@ -347,6 +348,9 @@ class MarsEnv(gym.Env):
         self.last_position_y = self.y
         if self.done:
             self.writer.add_scalar('data/episode_reward', self.reward_in_episode, self.num_episodes)
+            self.writer.add_scalar('data/waypoint_reached', self.reached_waypoint_1 + 
+                                                            self.reached_waypoint_2 + 
+                                                            self.reached_waypoint_3, self.num_episodes)
             self.num_episodes += 1
         self.writer.add_scalar('data/reward', self.reward, self.global_steps)
         self.global_steps += 1
@@ -374,8 +378,8 @@ class MarsEnv(gym.Env):
         
         GUIDERAILS_X_MIN = -46
         GUIDERAILS_X_MAX = 5
-        GUIDERAILS_Y_MIN = -22
-        GUIDERAILS_Y_MAX = 22
+        GUIDERAILS_Y_MIN = -16
+        GUIDERAILS_Y_MAX = 16
         
         
         # WayPoints to checkpoint
