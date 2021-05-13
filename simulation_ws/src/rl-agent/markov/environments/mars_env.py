@@ -134,6 +134,8 @@ class MarsEnv(gym.Env):
         self.num_episodes = 0
         self.global_steps = 0
 
+        self.prev_distance_travelled = 0
+        self.prev_distance_to_checkpoint = INITIAL_DISTANCE_TO_CHECKPOINT
 
 
     '''
@@ -174,6 +176,9 @@ class MarsEnv(gym.Env):
         self.send_action(0, 0) # set the throttle to 0
         self.rover_reset()
         self.call_reward_function([0, 0])
+
+        self.prev_distance_travelled = 0
+        self.prev_distance_to_checkpoint = INITIAL_DISTANCE_TO_CHECKPOINT
 
         return self.next_state
 
@@ -448,7 +453,10 @@ class MarsEnv(gym.Env):
             # No Episode ending events - continue to calculate reward
 
             if reward_to_checkpoint:
-                reward = -1 * self.current_distance_to_checkpoint
+                reward = (self.prev_distance_to_checkpoint - self.current_distance_to_checkpoint)/(self.distance_travelled-self.prev_distance_travelled)
+
+                self.prev_distance_travelled = self.distance_travelled
+                self.prev_distance_to_checkpoint = self.current_distance_to_checkpoint
                 return reward, done
 
             
