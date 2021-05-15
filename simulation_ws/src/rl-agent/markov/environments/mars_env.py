@@ -451,14 +451,6 @@ class MarsEnv(gym.Env):
             
             
             # No Episode ending events - continue to calculate reward
-
-            if reward_to_checkpoint:
-                reward = (self.prev_distance_to_checkpoint - self.current_distance_to_checkpoint)/(self.distance_travelled-self.prev_distance_travelled)
-
-                self.prev_distance_travelled = self.distance_travelled
-                self.prev_distance_to_checkpoint = self.current_distance_to_checkpoint
-                return reward, done
-
             
             if self.last_position_x <= WAYPOINT_1_X and self.last_position_y >= WAYPOINT_1_Y: # Rover is past the midpoint
                 # Determine if Rover already received one time reward for reaching this waypoint
