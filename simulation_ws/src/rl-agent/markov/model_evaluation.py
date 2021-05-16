@@ -85,7 +85,7 @@ def main():
     else:
         raise ValueError("Unable to determine preset file")
 
-    graph_manager.data_store = data_store
+    # graph_manager.data_store = data_store
     evaluation_worker(
         graph_manager=graph_manager,
         number_of_trials=args.number_of_trials,
